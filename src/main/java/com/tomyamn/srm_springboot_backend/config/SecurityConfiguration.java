@@ -33,25 +33,22 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeHttpRequests()
-                // Allow public access to login and registration endpoints
-                .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
-//                .requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()  // Add this line for testing
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        // Allow public access to login and registration endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
+                        // .requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()  // Add this line for testing
 
-                // Protect all other routes
-                .anyRequest().authenticated()
-                .and()
-                // Use the custom authentication provider
-                .authenticationProvider(customAuthenticationProvider)
-                // Add JWT filter before the username-password authentication filter
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // Set session management to stateless
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                // Enable CORS
-                .cors().configurationSource(corsConfigurationSource());
+                        // Protect all other routes
+                        .anyRequest().authenticated()
+                )
+                .authenticationProvider(customAuthenticationProvider) // Use the custom authentication provider
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter before the username-password authentication filter
+                .sessionManagement(session -> session
+                        // Set session management to stateless
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())); // Enable CORS
 
         return http.build();
     }
